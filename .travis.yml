@@ -1,0 +1,21 @@
+language: php
+
+php:
+  - '7.0'
+  - '7.1'
+  - '7.2'
+
+before_script:
+  - composer self-update
+  - composer install --prefer-source --no-interaction
+
+script:
+  # Search for PHP syntax errors.
+  - find -L . -path ./vendor -prune -o -name '*.php' -print0 | xargs -0 -n 1 -P 4 php -l
+  # Run PHPCS.
+  - vendor/bin/phpcs --standard=PSR2 --ignore=./vendor/ .
+  # Run tests
+  - vendor/bin/phpunit
+
+notifications:
+  email: false
