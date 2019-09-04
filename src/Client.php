@@ -2,31 +2,28 @@
 
 namespace Sisense;
 
-use InvalidArgumentException;
+use GuzzleHttp\Exception\GuzzleException;
+use Doctrine\Instantiator\Exception\InvalidArgumentException;
 
+/**
+ * Class Client
+ *
+ * @package Sisense
+ *
+ * @property-read Api\Authentication $authentication
+ * @property-read Api\Users $users
+ * @property-read Api\Groups $groups
+ * @property-read Api\Application $application
+ */
 class Client implements ClientInterface
 {
-    /**
-     * @var array
-     */
-    private static $defaultPorts = array(
-        'http' => 80,
-        'https' => 443,
-    );
-
-    /**
-     * Error strings if json is invalid.
-     */
-    private static $jsonErrors = array(
-        JSON_ERROR_NONE => 'No error has occurred',
-        JSON_ERROR_DEPTH => 'The maximum stack depth has been exceeded',
-        JSON_ERROR_CTRL_CHAR => 'Control character error, possibly incorrectly encoded',
-        JSON_ERROR_SYNTAX => 'Syntax error',
-    );
-
+    use JsonEncodeDecoder;
 
     private $classes = [
-        'auth' => 'Auth',
+        'users' => 'Users',
+        'groups' => 'Groups',
+        'application' => 'Application',
+        'authentication' => 'Authentication',
     ];
 
     /**
@@ -37,12 +34,12 @@ class Client implements ClientInterface
     /**
      * @var string
      */
-    private $url;
+    private $baseUrl;
 
     /**
      * @var string
      */
-    private $apiToken = null;
+    private $accessToken = null;
 
     /**
      * @var array APIs
@@ -50,31 +47,56 @@ class Client implements ClientInterface
     private $apis = [];
 
     /**
+     * @var array
+     */
+    private $config = [];
+
+    /**
      * Client constructor.
-     * @param string $url
+     *
+     * @param string                           $baseUrl
+     * @param array                            $config
      * @param \GuzzleHttp\ClientInterface|null $http
      */
-    public function __construct($url, \GuzzleHttp\ClientInterface $http = null)
+    public function __construct($baseUrl, array $config = [], \GuzzleHttp\ClientInterface $http = null)
     {
         if (is_null($http)) {
             $http = new \GuzzleHttp\Client();
         }
 
-        $this->url = $url;
         $this->http = $http;
+        $this->baseUrl = $baseUrl;
+
+        $this->config = array_merge($this->config, $config);
     }
 
     /**
-     * @param $path
-     * @param $method
-     * @param array $data
-     * @param array $headers
-     * @return string
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @param string $name
+     *
+     * @return Api\AbstractApi
+     * @throws \InvalidArgumentException
      */
-    public function runRequest($path, $method, $data = [], $headers = [])
+    public function __get($name)
     {
-        $response = $this->http->request($method, $this->url . $path);
+        return $this->api($name);
+    }
+
+    /**
+     * @param  $path
+     * @param  $method
+     * @param  array  $options
+     * @return array
+     * @throws GuzzleException
+     */
+    public function runRequest($path, $method, $options = [])
+    {
+        if ($this->accessToken && empty($options['headers'])) {
+            $options['headers'] = [
+                'Authorization' => 'Bearer ' . $this->accessToken,
+            ];
+        }
+
+        $response = $this->http->request($method, $this->baseUrl . $path, $options);
 
         return $this->decode(
             $response->getBody()->getContents()
@@ -82,105 +104,39 @@ class Client implements ClientInterface
     }
 
     /**
-     * @param $path
-     * @param array $params
-     * @param bool $decode
-     * @return array|string
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @inheritDoc
      */
-    public function get($path, array $params = [])
+    public function get($path, array $params = []) : array
     {
-        $response = $this->runRequest($path, 'GET');
+        $options['query'] = $params;
 
-        return $response;
+        return $this->runRequest($path, 'GET', $options);
     }
 
     /**
-     * HTTP POSTs $params to $path.
-     *
-     * @param string $path
-     * @param mixed $data
-     * @param array $headers
-     *
-     * @return bool|string
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @inheritDoc
      */
-    public function post($path, $data = null, $headers = [])
+    public function post(string $path, array $data = []) : array
     {
-        if (empty($headers['Content-Type']) || $headers['Content-Type'] == 'application/json' ) {
-            $data = $this->encodeData($data);
-        }
+        $options['form_params'] = $data;
 
-        return $this->runRequest($path, 'POST', $data, $headers);
+        return $this->runRequest($path, 'POST', $options);
     }
 
     /**
-     * @param mixed $data
-     *
-     * @return array
+     * @inheritDoc
      */
-    private function encodeData($data = null)
+    public function put(string $path, array $data = []): array
     {
-        if (is_array($data)) {
-            return json_encode($data);
-        }
-
-        return [];
+        // TODO: Implement put() method.
     }
 
     /**
-     * Decodes json response.
-     *
-     * Returns $json if no error occured during decoding but decoded value is
-     * null.
-     *
-     * @param string $json
-     *
-     * @return array|string
+     * @inheritDoc
      */
-    public function decode($json)
+    public function delete(string $path, array $data = []): array
     {
-        if ('' === $json) {
-            return '';
-        }
-        $decoded = json_decode($json, true);
-        if (null !== $decoded) {
-            return $decoded;
-        }
-        if (JSON_ERROR_NONE === json_last_error()) {
-            return $json;
-        }
-        return self::$jsonErrors[json_last_error()];
-    }
-
-    /**
-     * @return string
-     */
-    public function getUrl()
-    {
-        return $this->url;
-    }
-
-    /**
-     * Set the apiToken object globally from json encoded token object.
-     *
-     * @param string $apiToken json token object
-     *
-     * @return Client
-     */
-    public function setApiToken($apiToken)
-    {
-        $this->apiToken = $apiToken;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getApiToken()
-    {
-        return $this->apiToken;
+        // TODO: Implement delete() method.
     }
 
     /**
@@ -195,22 +151,65 @@ class Client implements ClientInterface
         if (!isset($this->classes[$name])) {
             throw new \InvalidArgumentException('Available api : '.implode(', ', array_keys($this->classes)));
         }
+
         if (isset($this->apis[$name])) {
             return $this->apis[$name];
         }
+
         $c = 'Sisense\Api\\' . $this->classes[$name];
         $this->apis[$name] = new $c($this);
         return $this->apis[$name];
     }
 
     /**
-     * @param string $name
+     * Helper to authenticate
      *
-     * @throws \InvalidArgumentException
-     *
+     * @param  string $username
+     * @param  string $password
+     * @throws GuzzleException
      */
-    public function __get($name)
+    public function authenticate(string $username = '', string $password = '')
     {
-        return $this->api($name);
+        if ($username) {
+            $this->config['username'] = $username;
+        }
+        if ($password) {
+            $this->config['password'] = $password;
+        }
+
+        if (empty($this->config['username']) || empty($this->config['password'])) {
+            throw new InvalidArgumentException('Credentials not found');
+        }
+
+        $response = $this->authentication->login($this->config['username'], $this->config['password']);
+
+        $this->setAccessToken($response['access_token']);
+    }
+
+    /**
+     * @param  string $accessToken
+     * @return $this
+     */
+    public function setAccessToken(string $accessToken)
+    {
+        $this->accessToken = $accessToken;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBaseUrl() : string
+    {
+        return $this->baseUrl;
+    }
+
+    /**
+     * @return \GuzzleHttp\ClientInterface
+     */
+    public function getHttp() : \GuzzleHttp\ClientInterface
+    {
+        return $this->http;
     }
 }
