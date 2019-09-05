@@ -1,15 +1,15 @@
 <?php
 
-namespace Sisense\Tests;
+namespace Sisense\Tests\V09;
 
 use Sisense\Client;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
- * Class AuthenticationTest
+ * Class AuthorizationTest
  */
-class AuthenticationTest extends TestCase
+class AuthorizationTest extends TestCase
 {
     /**
      * @var MockObject|Client
@@ -22,31 +22,33 @@ class AuthenticationTest extends TestCase
         parent::setUp();
 
         $this->clientMock = $this->createPartialMock(Client::class, ['runRequest']);
+
+        $this->clientMock->useVersion('v0.9', true);
     }
 
     /**
-     * @covers \Sisense\Api\Authentication::login
+     * @covers \Sisense\Api\V09\Authorization::login
      */
-    public function testLogin()
+    public function testIsAuth()
     {
         $this->clientMock->expects($this->once())
             ->method('runRequest')
-            ->with('v1/authentication/login', 'POST', ['form_params' => ['username' => 'u', 'password' => 'p']])
+            ->with('auth/isauth', 'GET')
             ->willReturn([]);
 
-        $this->clientMock->authentication->login('u', 'p');
+        $this->clientMock->authorization->isAuth();
     }
 
     /**
-     * @covers \Sisense\Api\Authentication::logout
+     * @covers \Sisense\Api\V09\Authorization::logout
      */
     public function testLogout()
     {
         $this->clientMock->expects($this->once())
             ->method('runRequest')
-            ->with('v1/authentication/logout', 'GET', ['query' => ['collection' => 'c']])
+            ->with('auth/logout', 'GET')
             ->willReturn([]);
 
-        $this->clientMock->authentication->logout('c');
+        $this->clientMock->authorization->logout();
     }
 }
