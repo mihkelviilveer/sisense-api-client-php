@@ -286,4 +286,14 @@ class ClientTest extends TestCase
 
         $this->assertSame($users_1, $users_2);
     }
+
+    /**
+     * @covers \Sisense\Client::getAccessToken()
+     */
+    public function testGetAccessToken()
+    {
+        $client = new Client('http://localhost/', ['access_token' => 'token']);
+
+        $this->assertEquals('token', $client->getAccessToken());
+    }
 }

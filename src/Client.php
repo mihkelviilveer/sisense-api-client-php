@@ -261,4 +261,14 @@ class Client implements ClientInterface
     {
         return $this->useVersion($version, $setAsDefault);
     }
+
+    /**
+     * Returns access_token
+     *
+     * @return string
+     */
+    public function getAccessToken() : string
+    {
+        return $this->config['access_token'];
+    }
 }
