@@ -196,7 +196,7 @@ class Client implements ClientInterface
             throw new InvalidArgumentException('Credentials not found');
         }
 
-        $response = $this->v('v1')->authentication->login($this->config['username'], $this->config['password']);
+        $response = $this->v('v1.0')->authentication->login($this->config['username'], $this->config['password']);
 
         $this->useAccessToken($response['access_token']);
     }

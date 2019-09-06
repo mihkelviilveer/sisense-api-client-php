@@ -182,7 +182,7 @@ class ClientTest extends TestCase
 
         $clientMock->expects($this->once())
             ->method('v')
-            ->with('v1')
+            ->with('v1.0')
             ->willReturn($clientMock);
 
         $clientMock->expects($this->once())
