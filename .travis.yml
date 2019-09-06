@@ -7,7 +7,7 @@ php:
 
 before_script:
   - composer self-update
-  - composer install --prefer-source --no-interaction
+  - composer install --prefer-dist --no-interaction
 
 script:
   # Search for PHP syntax errors.
@@ -16,6 +16,11 @@ script:
   - vendor/bin/phpcs --standard=PSR2 --ignore=./vendor/ .
   # Run tests
   - vendor/bin/phpunit
+
+## Cache composer bits
+cache:
+  directories:
+    - $HOME/.composer/cache/files
 
 notifications:
   email: false
