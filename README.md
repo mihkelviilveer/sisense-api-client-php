@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/erjanmx/sisense-api-client-php.svg?branch=master)](https://travis-ci.org/erjanmx/sisense-api-client-php)
+
 # sisense-api-client-php
 
 https://developers.sisense.com/display/API2/REST+API+Reference+-+v0.9
