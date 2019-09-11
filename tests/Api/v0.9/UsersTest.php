@@ -26,6 +26,40 @@ class UsersTest extends TestCase
         $this->clientMock->useVersion('v0.9', true);
     }
 
+    public function provider()
+    {
+        return [
+            [[
+                'method' => 'getAll',
+                'with' => [
+                    'path' => 'users/',
+                    'method' => 'GET',
+                    'parameters' => ['query' => ['parameters']],
+                ],
+                'parameters' => ['parameters'],
+            ]],
+
+        ];
+    }
+
+    /**
+     * @dataProvider provider
+     * @param $provider
+     */
+    public function testMethod($provider)
+    {
+        $method = $provider['method'];
+
+        $with = $provider['with'];
+        $callParameters = $provider['parameters'];
+
+        $this->clientMock->expects($this->once())
+            ->method('runRequest')
+            ->with($with['path'], $with['method'], $with['parameters'])
+            ->willReturn([]);
+
+        $this->clientMock->users->$method($callParameters);
+    }
     /**
      * @covers \Sisense\Api\V09\Users::getAll()
      */
