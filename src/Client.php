@@ -21,6 +21,8 @@ use Doctrine\Instantiator\Exception\InvalidArgumentException;
  * @property-read Api\V09\Palettes $palettes
  * @property-read Api\V09\Settings $settings
  * @property-read Api\V09\Roles $roles
+ * @property-read Api\V09\DataSources $dataSources
+ * @property-read Api\V09\Geo $geo
  */
 class Client implements ClientInterface
 {
@@ -37,6 +39,8 @@ class Client implements ClientInterface
             'groups' => 'V09\Groups',
             'settings' => 'V09\Settings',
             'roles' => 'V09\Roles',
+            'dataSources' => 'V09\DataSources',
+            'geo' => 'V09\Geo',
         ],
         'v1.0' => [
             'users' => 'Users',
@@ -123,49 +127,49 @@ class Client implements ClientInterface
     /**
      * @inheritDoc
      */
-    public function get(string $path, array $params = []) : array
+    public function get(string $path, array $options = []) : array
     {
-        $options['query'] = $params;
-
         return $this->runRequest($path, 'GET', $options);
     }
 
     /**
      * @inheritDoc
      */
-    public function post(string $path, array $data = []) : array
+    public function post(string $path, array $options = []) : array
     {
-        $options['form_params'] = $data;
-
         return $this->runRequest($path, 'POST', $options);
     }
 
     /**
      * @inheritDoc
      */
-    public function put(string $path, array $data = []): array
+    public function put(string $path, array $options = []): array
     {
-        return $this->runRequest($path, 'PUT', $data);
+        return $this->runRequest($path, 'PUT', $options);
     }
 
     /**
      * @inheritDoc
      */
-    public function delete(string $path, array $data = []): array
+    public function delete(string $path, array $options = []): array
     {
-        return $this->runRequest($path, 'DELETE', $data);
+        return $this->runRequest($path, 'DELETE', $options);
     }
 
     /**
      * @inheritDoc
      */
-    public function patch(string $path, array $data = []): array
+    public function patch(string $path, array $options = []): array
     {
-        return $this->runRequest($path, 'PATCH', $data);
+        return $this->runRequest($path, 'PATCH', $options);
     }
 
     /**
-     * @inheritDoc
+     * @param string $name
+     *
+     * @throws InvalidArgumentException
+     *
+     * @return Api\AbstractApi
      */
     public function api(string $name)
     {

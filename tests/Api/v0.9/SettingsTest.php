@@ -1,27 +1,17 @@
 <?php
 
-namespace Sisense\Tests\V09;
+namespace Tests\Api\V09;
 
-use Sisense\Client;
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\MockObject\MockObject;
+use Tests\Api\BaseApiTest;
 
 /**
  * Class SettingsTest
  */
-class SettingsTest extends TestCase
+class SettingsTest extends BaseApiTest
 {
-    /**
-     * @var MockObject|Client
-     */
-    protected $clientMock;
-
-
     public function setUp()
     {
         parent::setUp();
-
-        $this->clientMock = $this->createPartialMock(Client::class, ['runRequest']);
 
         $this->clientMock->useVersion('v0.9', true);
     }
@@ -31,10 +21,7 @@ class SettingsTest extends TestCase
      */
     public function testGetAll()
     {
-        $this->clientMock->expects($this->once())
-            ->method('runRequest')
-            ->with('settings/api', 'GET')
-            ->willReturn([]);
+        $this->expects('settings/api', 'GET');
 
         $this->clientMock->settings->getApi();
     }
@@ -44,10 +31,7 @@ class SettingsTest extends TestCase
      */
     public function testGetSystem()
     {
-        $this->clientMock->expects($this->once())
-            ->method('runRequest')
-            ->with('settings/system', 'GET')
-            ->willReturn([]);
+        $this->expects('settings/system', 'GET');
 
         $this->clientMock->settings->getSystem();
     }
@@ -57,10 +41,7 @@ class SettingsTest extends TestCase
      */
     public function testSetSystem()
     {
-        $this->clientMock->expects($this->once())
-            ->method('runRequest')
-            ->with('settings/system', 'POST', ['form_params' => ['foo' => 'bar']])
-            ->willReturn([]);
+        $this->expects('settings/system', 'POST', ['json' => ['emailServer' => ['foo' => 'bar']]]);
 
         $this->clientMock->settings->setSystem(['foo' => 'bar']);
     }
@@ -70,10 +51,7 @@ class SettingsTest extends TestCase
      */
     public function testGetProxy()
     {
-        $this->clientMock->expects($this->once())
-            ->method('runRequest')
-            ->with('settings/proxy', 'GET')
-            ->willReturn([]);
+        $this->expects('settings/proxy', 'GET');
 
         $this->clientMock->settings->getProxy();
     }
@@ -83,10 +61,7 @@ class SettingsTest extends TestCase
      */
     public function testAddProxy()
     {
-        $this->clientMock->expects($this->once())
-            ->method('runRequest')
-            ->with('settings/proxy', 'POST', ['form_params' => ['proxyConfig' => ['bar']]])
-            ->willReturn([]);
+        $this->expects('settings/proxy', 'POST', ['json' => ['proxyConfig' => ['bar']]]);
 
         $this->clientMock->settings->addProxy(['bar']);
     }
@@ -96,10 +71,7 @@ class SettingsTest extends TestCase
      */
     public function testUpdateProxy()
     {
-        $this->clientMock->expects($this->once())
-            ->method('runRequest')
-            ->with('settings/proxy', 'PUT', ['proxyConfig' => ['bar']])
-            ->willReturn([]);
+        $this->expects('settings/proxy', 'PUT', ['json' => ['proxyConfig' => ['bar']]]);
 
         $this->clientMock->settings->updateProxy(['bar']);
     }
@@ -109,12 +81,9 @@ class SettingsTest extends TestCase
      */
     public function testDeleteProxy()
     {
-        $this->clientMock->expects($this->once())
-            ->method('runRequest')
-            ->with('settings/proxy', 'DELETE', ['foo' => 'bar'])
-            ->willReturn([]);
+        $this->expects('settings/proxy', 'DELETE');
 
-        $this->clientMock->settings->deleteProxy(['foo' => 'bar']);
+        $this->clientMock->settings->deleteProxy();
     }
 
     /**
@@ -122,10 +91,7 @@ class SettingsTest extends TestCase
      */
     public function testGetSecurity()
     {
-        $this->clientMock->expects($this->once())
-            ->method('runRequest')
-            ->with('settings/security', 'GET')
-            ->willReturn([]);
+        $this->expects('settings/security', 'GET');
 
         $this->clientMock->settings->getSecurity();
     }
@@ -135,10 +101,7 @@ class SettingsTest extends TestCase
      */
     public function testSetSecurity()
     {
-        $this->clientMock->expects($this->once())
-            ->method('runRequest')
-            ->with('settings/security', 'POST', ['form_params' => ['securityConfig' => ['foo' => 'bar']]])
-            ->willReturn([]);
+        $this->expects('settings/security', 'POST', ['json' => ['securityConfig' => ['foo' => 'bar']]]);
 
         $this->clientMock->settings->setSecurity(['foo' => 'bar']);
     }
@@ -148,10 +111,7 @@ class SettingsTest extends TestCase
      */
     public function testGenerateApi()
     {
-        $this->clientMock->expects($this->once())
-            ->method('runRequest')
-            ->with('settings/api/generate', 'GET')
-            ->willReturn([]);
+        $this->expects('settings/api/generate', 'GET');
 
         $this->clientMock->settings->generateApi();
     }

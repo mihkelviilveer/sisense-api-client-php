@@ -1,71 +1,57 @@
 <?php
 
-namespace Sisense\Tests\V09;
+namespace Tests\Api\V09;
 
-use Sisense\Client;
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\MockObject\MockObject;
+use Tests\Api\BaseApiTest;
 
 /**
  * Class BrandingTest
  */
-class BrandingTest extends TestCase
+class BrandingTest extends BaseApiTest
 {
-    /**
-     * @var MockObject|Client
-     */
-    protected $clientMock;
-
-
     public function setUp()
     {
         parent::setUp();
-
-        $this->clientMock = $this->createPartialMock(Client::class, ['runRequest']);
 
         $this->clientMock->useVersion('v0.9', true);
     }
 
     /**
-     * @covers \Sisense\Api\V09\Branding::getAll()
+     * Test case for getBranding
+     *
+     * Returns the current branding metadata.
+     *
      */
-    public function testGetAll()
+    public function testGetBranding()
     {
-        $this->clientMock->expects($this->once())
-            ->method('runRequest')
-            ->with('branding/', 'GET')
-            ->willReturn([]);
+        $this->expects('branding/', 'GET');
 
-        $this->clientMock->branding->getAll();
+        $this->clientMock->branding->getBranding();
     }
 
     /**
-     * @covers \Sisense\Api\V09\Branding::addBranding()
+     * Test case for resetBranding
+     *
+     * Resets the current branding to the default Sisense branding.
+     *
      */
-    public function testAddBranding()
+    public function testResetBranding()
     {
-        $parameters = ['foo' => 'bar'];
+        $this->expects('branding/', 'DELETE');
 
-        $this->clientMock->expects($this->once())
-            ->method('runRequest')
-            ->with('branding/', 'POST', ['form_params' => $parameters])
-            ->willReturn([]);
-
-        $this->clientMock->branding->addBranding($parameters);
+        $this->clientMock->branding->resetBranding();
     }
 
     /**
-     * @covers \Sisense\Api\V09\Branding::deleteBranding()
+     * Test case for setBranding
+     *
+     * Adds new branding to your Sisense dashboards.
+     *
      */
-    public function testDeleteBranding()
+    public function testSetBranding()
     {
-        $parameters = ['foo' => 'bar'];
+        $this->expects('branding/', 'POST', ['json' => ['foo' => 'bar']]);
 
-        $this->clientMock->expects($this->once())
-            ->method('runRequest')
-            ->with('branding/', 'DELETE', $parameters)
-            ->willReturn([]);
-
-        $this->clientMock->branding->deleteBranding($parameters);
+        $this->clientMock->branding->setBranding(['foo' => 'bar']);
     }
 }

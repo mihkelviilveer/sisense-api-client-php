@@ -21,16 +21,11 @@ class ElastiCubes extends AbstractApi
      * @param string $sortBy The order in which the ElastiCubes appear in the response.
      * @return array
      */
-    public function getAllMetaData(string $q = '', string $sortBy = '') : array
+    public function getElasticubesMetadata(string $q = '', string $sortBy = '') : array
     {
         $path = $this->getPath('metadata');
-        
-        $params = [
-            'q' => $q,
-            'sortBy' => $sortBy,
-        ];
 
-        return $this->get($path, $params);
+        return $this->get($path, ['query' => compact('q', 'sortBy')]);
     }
 
     /**
@@ -40,9 +35,9 @@ class ElastiCubes extends AbstractApi
      * @param string $elastiCube The ElastiCube name as displayed in ElastiCube manager
      * @return array
      */
-    public function getMetaData(string $elastiCube) : array
+    public function getElasticubeMetadata(string $elastiCube) : array
     {
-        $path = $this->getPath(sprintf('%s/%s', 'metadata', $elastiCube));
+        $path = $this->getPath(sprintf('metadata/%s', $elastiCube));
 
         return $this->get($path);
     }
@@ -51,13 +46,14 @@ class ElastiCubes extends AbstractApi
      * Returns fields included in a specific ElastiCube.
      *
      * @param string $elastiCube
+     * @param array $parameters
      * @return array
      */
-    public function getFields(string $elastiCube) : array
+    public function getElasticubeFields(string $elastiCube, $parameters = []) : array
     {
-        $path = $this->getPath(sprintf('elasticubes/metadata/%s/fields', $elastiCube));
+        $path = $this->getPath(sprintf('metadata/%s/fields', $elastiCube));
 
-        return $this->get($path);
+        return $this->get($path, ['query' => $parameters]);
     }
 
     /**
@@ -69,11 +65,25 @@ class ElastiCubes extends AbstractApi
      * ]
      * @return array
      */
-    public function executeSql(string $elastiCube, array $parameters = []) : array
+    public function getElasticubeSql(string $elastiCube, array $parameters = []) : array
     {
-        $path = $this->getPath(sprintf('elasticubes/%s/Sql', $elastiCube));
+        $path = $this->getPath(sprintf('%s/Sql', $elastiCube));
 
-        return $this->get($path, $parameters);
+        return $this->get($path, ['query' => $parameters]);
+    }
+
+    /**
+     * Get Elasticubes of Server
+     *
+     * @param string $address
+     * @param array $parameters
+     * @return array
+     */
+    public function getServerElastiCubes(string $address, array $parameters = []) : array
+    {
+        $path = $this->getPath(sprintf('server/%s', $address));
+
+        return $this->get($path, ['query' => $parameters]);
     }
 
     /**
@@ -84,11 +94,11 @@ class ElastiCubes extends AbstractApi
      */
     public function getAll(array $parameters = []) : array
     {
-        return $this->get($this->getPath(), $parameters);
+        return $this->get($this->getPath(), ['query' => $parameters]);
     }
 
     /**
-     * Returns the ElastiCube servers with metadata.
+     * Get Elasticubes Servers
      *
      * @param array $parameters
      * @return array
@@ -97,7 +107,7 @@ class ElastiCubes extends AbstractApi
     {
         $path = $this->getPath('servers');
 
-        return $this->get($path, $parameters);
+        return $this->get($path, ['query' => $parameters]);
     }
 
     /**
@@ -111,7 +121,7 @@ class ElastiCubes extends AbstractApi
     {
         $path = $this->getPath(sprintf('%s/%s', 'servers', $server));
 
-        return $this->get($path, $parameters);
+        return $this->get($path, ['query' => $parameters]);
     }
 
     /**
@@ -123,9 +133,9 @@ class ElastiCubes extends AbstractApi
      */
     public function getServerSimple(string $server, array $parameters = []) : array
     {
-        $path = $this->getPath(sprintf('%s/%s/simple', 'servers', $server));
+        $path = $this->getPath(sprintf('servers/%s/simple', $server));
 
-        return $this->get($path, $parameters);
+        return $this->get($path, ['query' => $parameters]);
     }
 
     /**
@@ -137,9 +147,9 @@ class ElastiCubes extends AbstractApi
      */
     public function getServerStatus(string $server, array $parameters = []) : array
     {
-        $path = $this->getPath(sprintf('%s/%s/status', 'servers', $server));
+        $path = $this->getPath(sprintf('servers/%s/status', $server));
 
-        return $this->get($path, $parameters);
+        return $this->get($path, ['query' => $parameters]);
     }
 
     /**
@@ -147,14 +157,13 @@ class ElastiCubes extends AbstractApi
      *
      * @param string $server
      * @param string $elasticCube
-     * @param array $parameters
      * @return array
      */
-    public function getDataSecurityRules(string $server, string $elasticCube, array $parameters = []) : array
+    public function getDataSecurityRules(string $server, string $elasticCube) : array
     {
         $path = $this->getPath(sprintf('%s/%s/datasecurity', $server, $elasticCube));
 
-        return $this->get($path, $parameters);
+        return $this->get($path);
     }
 
     /**
@@ -247,16 +256,17 @@ class ElastiCubes extends AbstractApi
     /**
      * Starts the build process for an ElastiCube.
      *
-     * @param string $server
-     * @param string $elastiCube
+     * @param string $address
+     * @param string $cubeId
      * @param string $type
+     * @param string $orchestratorTask
      * @return array
      */
-    public function startBuild(string $server, string $elastiCube, string $type = '') : array
+    public function startBuild(string $address, string $cubeId, string $type, string $orchestratorTask = '') : array
     {
-        $path = $this->getPath(sprintf('%s/%s/startBuild', $server, $elastiCube));
+        $path = $this->getPath(sprintf('%s/%s/startBuild', $address, $cubeId));
 
-        return $this->post($path, ['type' => $type]);
+        return $this->post($path, ['query' => compact('type', 'orchestratorTask')]);
     }
 
     /**
@@ -280,55 +290,68 @@ class ElastiCubes extends AbstractApi
      * @param string $elastiCube
      * @return array
      */
-    public function executeJAQL(string $jaql, string $elastiCube) : array
+    public function executeJAQL(string $elastiCube, string $jaql) : array
     {
         $path = $this->getPath(sprintf('%s/jaql', $elastiCube));
 
-        return $this->post($path, ['jaql' => $jaql]);
+        return $this->post($path, ['json' => ['Jaql' => $jaql]]);
     }
 
     /**
-     * Defines data security for an ElastiCube.
+     * Add new data context for datasource
      *
      * @param string $server
      * @param string $elastiCube
-     * @param array $body
+     * @param array $dataSecurityList
      * @return array
      */
-    public function defineDataSecurity(string $server, string $elastiCube, array $body) : array
+    public function defineDataSecurity(string $server, string $elastiCube, array $dataSecurityList = []) : array
     {
         $path = $this->getPath(sprintf('%s/%s/datasecurity', $server, $elastiCube));
 
-        return $this->post($path, ['body' => $body]);
+        return $this->post($path, ['json' => $dataSecurityList]);
     }
 
     /**
      * Adds new data security for ElastiCube.
      *
-     * @param array $parameters
+     * @param array $elasticubeNewDataSecurityItems
      * @return array
      */
-    public function addDataSecurity(array $parameters) : array
+    public function addDataSecurity(array $elasticubeNewDataSecurityItems = []) : array
     {
         $path = $this->getPath('datasecurity');
 
-        return $this->post($path, $parameters);
+        return $this->post($path, ['json' => $elasticubeNewDataSecurityItems]);
     }
 
     /**
-     * Attaches and detaches an ElastiCube folder to a server.
+     * AttachDetach cube
      *
-     * @param string $server
-     * @param string $elastiCube
-     * @param array $body
+     * @param string $address
+     * @param string $cubeId
+     * @param array $attachDetachObj
      * @return array
      */
-    public function attachDetachFolder(string $server, string $elastiCube, array $body = []) : array
+    public function attachDetachFolder(string $address, string $cubeId, array $attachDetachObj) : array
     {
-        $path = $this->getPath(sprintf('%s/%s/attachDetach', $server, $elastiCube));
+        $path = $this->getPath(sprintf('%s/%s/attachDetach', $address, $cubeId));
 
+        return $this->post($path, ['json' => $attachDetachObj]);
+    }
 
-        return $this->post($path, ['body' => $body]);
+    /**
+     * Defines a new permission for the given ElastiCube.
+     *
+     * @param string $id
+     * @param array $elasticubeUpdateDataSecurity
+     * @return array
+     */
+    public function updateDataSecurity(string $id, array $elasticubeUpdateDataSecurity = []) : array
+    {
+        $path = $this->getPath(sprintf('datasecurity/%s', $id));
+
+        return $this->post($path, ['json' => compact('elasticubeUpdateDataSecurity')]);
     }
 
     /**
@@ -339,11 +362,39 @@ class ElastiCubes extends AbstractApi
      * @param array $shares
      * @return array
      */
-    public function definePermission(string $server, string $elastiCube, array $shares = []) : array
+    public function addElasticubePermissions(string $server, string $elastiCube, array $shares = []) : array
     {
         $path = $this->getPath(sprintf('%s/%s/permissions', $server, $elastiCube));
 
-        return $this->post($path, ['shares' => $shares]);
+        return $this->post($path, ['json' => compact('shares')]);
+    }
+
+    /**
+     * Defines permissions for an ElastiCube server
+     *
+     * @param string $server
+     * @param array $shares
+     * @return array
+     */
+    public function updateServerDefaultPermissions(string $server, array $shares = []) : array
+    {
+        $path = $this->getPath(sprintf('server/%s/permissions', $server));
+
+        return $this->put($path, ['json' => $shares]);
+    }
+
+    /**
+     * Update Elasticubes Server Permissions
+     *
+     * @param string $address
+     * @param array $permissionsObj
+     * @return array
+     */
+    public function updateServerPermissions(string $address, array $permissionsObj) : array
+    {
+        $path = $this->getPath(sprintf('servers/%s/permissions', $address));
+
+        return $this->put($path, ['json' => $permissionsObj]);
     }
 
     /**
@@ -358,7 +409,7 @@ class ElastiCubes extends AbstractApi
     {
         $path = $this->getPath(sprintf('%s/%s/permissions', $server, $elastiCube));
 
-        return $this->put($path, ['shares' => $shares]);
+        return $this->put($path, ['json' => $shares]);
     }
 
     /**
