@@ -4,6 +4,7 @@ namespace Sisense;
 
 use GuzzleHttp\Exception\GuzzleException;
 use Doctrine\Instantiator\Exception\InvalidArgumentException;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * Class Client
@@ -16,6 +17,7 @@ use Doctrine\Instantiator\Exception\InvalidArgumentException;
  * @property-read Api\Application $application
  * @property-read Api\Account $account
  * @property-read Api\Admin $admin
+ * @property-read Api\Dashboards $dashboards
  * @property-read Api\V09\Authorization $authorization
  * @property-read Api\V09\ElastiCubes $elastiCubes
  * @property-read Api\V09\Branding $branding
@@ -51,6 +53,7 @@ class Client implements ClientInterface
             'authentication' => 'Authentication',
             'account' => 'Account',
             'admin' => 'Admin',
+            'dashboards' => 'Dashboards',
         ],
     ];
 
@@ -111,11 +114,12 @@ class Client implements ClientInterface
     /**
      * @param  $path
      * @param  $method
-     * @param  array  $options
-     * @return array
+     * @param array $options
+     * @param bool $decode
+     * @return array|StreamInterface
      * @throws GuzzleException
      */
-    public function runRequest($path, $method, $options = [])
+    public function runRequest($path, $method, $options = [], $decode = true)
     {
         if (!empty($this->config['access_token']) && empty($options['headers']['Authorization'])) {
             $options['headers']['Authorization'] = 'Bearer ' . $this->config['access_token'];
@@ -123,8 +127,14 @@ class Client implements ClientInterface
 
         $response = $this->http->request($method, $this->baseUrl . $path, $options);
 
+        $body = $response->getBody();
+
+        if ($decode === false) {
+            return $body;
+        }
+
         return $this->decode(
-            $response->getBody()->getContents()
+            $body->getContents()
         );
     }
 
